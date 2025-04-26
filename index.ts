@@ -10,6 +10,8 @@ import swaggerUi from 'swagger-ui-express';
 import 'express-async-errors';
 import specs from './src/utils/swagger';
 import { ErrorHandler } from './src/utils/errorHandler'
+import { db } from "../Quora-bn/src/database/models/index";
+import router from './src/routes/index'
 
 
 
@@ -22,7 +24,7 @@ app.use(compression())
 app.use(bodyParser.json())
 app.use(express.static('public'))
 // app.use(notFoundHandler)
- app.use(ErrorHandler)
+
 
 // Serve Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs))
@@ -30,6 +32,10 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs))
 app.get('/', (req: Request, res: Response) => {
   res.status(200).json({ message: 'Welcome to Quora-bn' })
 })
+
+app.use('/api',router)
+
+app.use(ErrorHandler)
 
 
 
@@ -42,7 +48,7 @@ server.listen(PORT, async () => {
     console.log('server started');
     console.log(`Database Connection status: Success\nRunning Port: ${PORT}`);
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 });
 

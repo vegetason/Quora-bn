@@ -1,21 +1,31 @@
-'use strict';
+import fs from 'fs';
+import path from 'path';
+import { Sequelize, DataTypes, Model } from 'sequelize';
+import UserModel from './user';
+import ProfileModel from './userProfile';
+import FollowModel from './followers';
 
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.js')[env];
-const db: any = {};
 
-let sequelize: any;
+export interface DbInterface {
+  [key: string]: any;
+  sequelize: Sequelize;
+  Sequelize: typeof Sequelize;
+  User: ReturnType<typeof UserModel>; 
+  Profile:ReturnType<typeof ProfileModel>;
+  Follow:ReturnType<typeof FollowModel>;
+}
+
+const db: DbInterface = {} as DbInterface;
+
+let sequelize: Sequelize;
 if (config.use_env_variable) {
-  // @ts-ignore
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+  sequelize = new Sequelize(process.env[config.use_env_variable] as string, config);
 } else if (config.url) {
   sequelize = new Sequelize(config.url, config);
 } else {
-
   sequelize = new Sequelize(
     config.database,
     config.username,
@@ -26,7 +36,7 @@ if (config.use_env_variable) {
 
 fs
   .readdirSync(__dirname)
-  .filter((file: string) => {
+  .filter((file) => {
     return (
       file.indexOf('.') !== 0 &&
       file !== basename &&
@@ -34,8 +44,9 @@ fs
       file.indexOf('.test.ts') === -1
     );
   })
-  .forEach((file: any) => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+  .forEach((file) => {
+    const modelModule = require(path.join(__dirname, file));
+    const model = (modelModule.default || modelModule)(sequelize, DataTypes);
     db[model.name] = model;
   });
 
